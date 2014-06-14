@@ -16,9 +16,9 @@ TYPESDB=vendor/collectd/types.db
 COLLECTD_VERSION=5.4.0
 TYPESDB_URL=https://collectd.org/files/collectd-$(COLLECTD_VERSION).tar.gz
 GEOIP=vendor/geoip/GeoLiteCity.dat
-GEOIP_URL=http://cdn.yongbok.net/ruo91/geoip/GeoLiteCity.dat.gz
+GEOIP_URL=http://cdn.yongbok.net/ruo91/geoip/GeoLiteCity.dat
 GEOIP_ASN=vendor/geoip/GeoIPASNum.dat
-GEOIP_ASN_URL=http://cdn.yongbok.net/ruo91/geoip/GeoIPASNum.dat.gz
+GEOIP_ASN_URL=http://cdn.yongbok.net/ruo91/geoip/GeoIPASNum.dat
 KIBANA_URL=https://download.elasticsearch.org/kibana/kibana/kibana-3.0.1.tar.gz
 PLUGIN_FILES=$(shell find lib -type f| egrep '^lib/logstash/(inputs|outputs|filters|codecs)/[^/]+$$' | egrep -v '/(base|threadable).rb$$|/inputs/ganglia/')
 QUIET=@
@@ -162,16 +162,18 @@ vendor/geoip: | vendor
 .PHONY: vendor-geoip
 vendor-geoip: $(GEOIP) $(GEOIP_ASN)
 $(GEOIP): | vendor/geoip
-	$(QUIET)$(DOWNLOAD_COMMAND) $@.tmp.gz $(GEOIP_URL)
-	$(QUIET)gzip -dc $@.tmp.gz > $@.tmp
-	$(QUIET)rm "$@.tmp.gz"
-	$(QUIET)mv $@.tmp $@
+#	$(QUIET)$(DOWNLOAD_COMMAND) $@.tmp.gz $(GEOIP_URL)
+	$(QUIET)$(DOWNLOAD_COMMAND) $(GEOIP_URL)
+#	$(QUIET)gzip -dc $@.tmp.gz > $@.tmp
+#	$(QUIET)rm "$@.tmp.gz"
+#	$(QUIET)mv $@.tmp $@
 
 $(GEOIP_ASN): | vendor/geoip
-	$(QUIET)$(DOWNLOAD_COMMAND) $@.tmp.gz $(GEOIP_ASN_URL)
-	$(QUIET)gzip -dc $@.tmp.gz > $@.tmp
-	$(QUIET)rm "$@.tmp.gz"
-	$(QUIET)mv $@.tmp $@
+#	$(QUIET)$(DOWNLOAD_COMMAND) $@.tmp.gz $(GEOIP_ASN_URL)
+	$(QUIET)$(DOWNLOAD_COMMAND) $(GEOIP_ASN_URL)
+#	$(QUIET)gzip -dc $@.tmp.gz > $@.tmp
+#	$(QUIET)rm "$@.tmp.gz"
+#	$(QUIET)mv $@.tmp $@
 
 vendor/collectd: | vendor
 	$(QUIET)mkdir $@
