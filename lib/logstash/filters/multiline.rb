@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/filters/base"
 require "logstash/namespace"
+require "logstash/environment"
 require "set"
 #
 # This filter will collapse multiline messages from a single source into one Logstash event.
@@ -8,6 +9,8 @@ require "set"
 # The original goal of this filter was to allow joining of multi-line messages
 # from files into a single event. For example - joining java exception and
 # stacktrace messages into a single event.
+#
+# NOTE: This filter will not work with multiple worker threads "-w 2" on the logstash command line.
 #
 # The config looks like this:
 #

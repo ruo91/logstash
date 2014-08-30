@@ -6,6 +6,35 @@ require "logstash/filters/mutate"
 describe LogStash::Filters::Mutate do
   extend LogStash::RSpec
 
+  context "config validation" do
+   describe "invalid convert type should raise a configuration error" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => [ "message", "int"] //should be integer
+          }
+        }
+      CONFIG
+
+      sample "not_really_important" do
+        insist {subject}.raises LogStash::ConfigurationError
+      end
+    end
+    describe "invalid gsub triad should raise a configuration error" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            gsub => [ "message", "toreplace"]
+          }
+        }
+      CONFIG
+
+      sample "not_really_important" do
+        insist {subject}.raises LogStash::ConfigurationError
+      end
+    end
+  end
+
   describe "basics" do
     config <<-CONFIG
       filter {
@@ -136,7 +165,7 @@ describe LogStash::Filters::Mutate do
     config <<-CONFIG
       filter {
         grok {
-          match => [ "message", "%{WORD:foo}" ]
+          match => { "message" => "%{WORD:foo}" }
         }
         mutate {
           lowercase => "foo"
@@ -176,6 +205,54 @@ describe LogStash::Filters::Mutate do
     sample({ "foo" => { "bar" => "1000" } }) do
       insist { subject["[foo][bar]"] } == 1000
       insist { subject["[foo][bar]"] }.is_a?(Fixnum)
+    end
+  end
+
+  #LOGSTASH-1529
+  describe "gsub on a String with dynamic fields (%{}) in pattern" do
+    config '
+      filter {
+        mutate {
+          gsub => [ "unicorns", "of type %{unicorn_type}", "green" ]
+        }
+      }'
+
+    sample("unicorns" => "Unicorns of type blue are common", "unicorn_type" => "blue") do
+      insist { subject["unicorns"] } == "Unicorns green are common"
+    end
+  end
+
+  #LOGSTASH-1529
+  describe "gsub on a String with dynamic fields (%{}) in pattern and replace" do
+    config '
+      filter {
+        mutate {
+          gsub => [ "unicorns2", "of type %{unicorn_color}", "%{unicorn_color} and green" ]
+        }
+      }'
+
+    sample("unicorns2" => "Unicorns of type blue are common", "unicorn_color" => "blue") do
+      insist { subject["unicorns2"] } == "Unicorns blue and green are common"
+    end
+  end
+
+  #LOGSTASH-1529
+  describe "gsub on a String array with dynamic fields in pattern" do
+    config '
+      filter {
+        mutate {
+          gsub => [ "unicorns_array", "of type %{color}", "blue and green" ]
+        }
+      }'
+
+    sample("unicorns_array" => [
+        "Unicorns of type blue are found in Alaska", "Unicorns of type blue are extinct" ],
+           "color" => "blue"
+    ) do
+      insist { subject["unicorns_array"] } == [
+          "Unicorns blue and green are found in Alaska",
+          "Unicorns blue and green are extinct"
+      ]
     end
   end
 end
